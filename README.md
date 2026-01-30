@@ -1,5 +1,4 @@
-#### accelerometer
-accelerometer is SVG UI control
+#### accelerometer ***SVG UI control***
 
 ## 🎯 Accelerometer Components
 
