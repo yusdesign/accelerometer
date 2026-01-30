@@ -1,9 +1,7 @@
 #### accelerometer
 accelerometer is SVG UI control
 
-You're absolutely right! Let me add proper badges for both of us:
-
-# 🎯 Accelerometer Components
+## 🎯 Accelerometer Components
 
 [![Built by yusdesign](https://img.shields.io/badge/built_by-yusdesign-crimson)](https://github.com/yusdesign)
 [![Powered by DeepSeek](https://img.shields.io/badge/powered_by-DeepSeek-black)](https://deepseek.com)
@@ -15,7 +13,7 @@ You're absolutely right! Let me add proper badges for both of us:
 
 Ultra-minimalist dual-axis accelerometer controls with spring physics. Perfect for games, creative coding, and UI experiments.
 
-## 🚀 Quick Start
+### 🚀 Quick Start
 
 ```html
 <!-- HTML -->
@@ -38,7 +36,7 @@ animate();
 </script>
 ```
 
-## 📦 Components
+### 📦 Components
 
 | Component | Purpose | Values |
 |-----------|---------|---------|
@@ -47,7 +45,7 @@ animate();
 | `CoordinateTransformer` | Math utilities | Angle conversion |
 | `ResultDisplay` | Vector visualization | (X, Y) with compass angle |
 
-## 🎮 Features
+### 🎮 Features
 
 - **Spring physics** - Automatically returns to zero
 - **Natural dragging** - Intuitive mouse/touch control
@@ -55,9 +53,9 @@ animate();
 - **Compass coordinates** - 0° = UP, 90° = RIGHT
 - **No dependencies** - Pure vanilla JavaScript
 
-## 📖 Usage Examples
+### 📖 Usage Examples
 
-### Game Controller
+#### Game Controller
 ```javascript
 const xAccel = new HorizontalAccelerometer('xCtrl', 'xTrack', 'xVal');
 const yAccel = new VerticalAccelerometer('yCtrl', 'yTrack', 'yVal');
@@ -71,13 +69,13 @@ function gameLoop() {
 }
 ```
 
-### Programmatic Control  
+#### Programmatic Control  
 ```javascript
 accel.setValue(0.5);    // Move to position
 accel.setValue(0);      // Reset to center
 ```
 
-## 🎯 Coordinate System
+### 🎯 Coordinate System
 
 ```
 0° = UP (Positive Y)
@@ -86,12 +84,12 @@ accel.setValue(0);      // Reset to center
 270° = LEFT (Negative X)
 ```
 
-## 🙏 Credits
+### 🙏 Credits
+[![Built by yusdesign](https://img.shields.io/badge/built_by-yusdesign-crimson)](https://github.com/yusdesign)
+[![Powered by DeepSeek](https://img.shields.io/badge/powered_by-DeepSeek-black)](https://deepseek.com)  
 
-**Built by** [Yus Design](https://github.com/yusdesign)  
-**Powered by** [DeepSeek AI](https://deepseek.com)  
-**Inspired by** SVG as shader techniques  
+***Inspired by SVG as shader techniques***  
 
-## 📄 License
+### 📄 License
 
 MIT © 2026 - Free to use in personal and commercial projects  
