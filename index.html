@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accelerometer Components - Ready to Use</title>
+    <style>
+        :root {
+            --color-bg: #0a192f;
+            --color-surface: rgba(17, 34, 64, 0.3);
+            --color-border: rgba(100, 255, 218, 0.15);
+            --color-x: #00b4d8;
+            --color-y: #ff6d6d;
+            --color-accent: #64ffda;
+            --color-text: #e6f1ff;
+            --color-muted: #8892b0;
+            --color-code-bg: rgba(0, 0, 0, 0.3);
+            --color-code-text: #f8f8f2;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--color-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui;
+            color: var(--color-text);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: var(--color-accent);
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--color-muted);
+            font-weight: 400;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin-bottom: 50px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Demo Panel */
+        .demo-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 30px;
+            height: fit-content;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            color: var(--color-accent);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--color-border);
+            font-weight: 500;
+        }
+
+        /* Accelerometer Demo */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 640px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .accel-demo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .accel-label {
+            font-size: 13px;
+            color: var(--color-muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* Horizontal Accelerometer */
+        .h-accel {
+            position: relative;
+            width: 200px;
+            height: 60px;
+        }
+
+        .h-track {
+            position: absolute;
+            width: 160px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1.5px;
+            left: 20px;
+            top: 28.5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .h-knob {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background: var(--color-x);
+            border-radius: 4px;
+            left: 85px;
+            top: 20px;
+            cursor: grab;
+            transition: left 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 180, 216, 0.3);
+        }
+
+        .h-knob:active {
+            cursor: grabbing;
+            box-shadow: 0 4px 16px rgba(0, 180, 216, 0.5);
+        }
+
+        /* Vertical Accelerometer */
+        .v-accel {
+            position: relative;
+            width: 60px;
+            height: 200px;
+        }
+
+        .v-track {
+            position: absolute;
+            width: 3px;
+            height: 160px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1.5px;
+            left: 28.5px;
+            top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .v-knob {
+            position: absolute;
+            width: 20px;
+            height: 30px;
+            background: var(--color-y);
+            border-radius: 4px;
+            left: 20px;
+            top: 85px;
+            cursor: grab;
+            transition: top 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(255, 109, 109, 0.3);
+        }
+
+        .v-knob:active {
+            cursor: grabbing;
+            box-shadow: 0 4px 16px rgba(255, 109, 109, 0.5);
+        }
+
+        /* Value Displays */
+        .value {
+            margin-top: 15px;
+            font-size: 20px;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .value.x { color: var(--color-x); }
+        .value.y { color: var(--color-y); }
+
+        /* Result Display */
+        .result-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .coords {
+            font-size: 24px;
+            font-family: 'SF Mono', monospace;
+            margin: 10px 0;
+        }
+
+        .coord.x { color: var(--color-x); }
+        .coord.y { color: var(--color-y); }
+
+        .angle {
+            font-size: 18px;
+            color: var(--color-accent);
+            font-family: 'SF Mono', monospace;
+            margin-top: 10px;
+        }
+
+        /* Code Panel */
+        .code-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .code-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 10px;
+        }
+
+        .code-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--color-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .code-tab:hover {
+            background: rgba(100, 255, 218, 0.1);
+        }
+
+        .code-tab.active {
+            background: rgba(100, 255, 218, 0.2);
+            color: var(--color-accent);
+            border-color: var(--color-accent);
+        }
+
+        .code-block {
+            position: relative;
+            background: var(--color-code-bg);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'SF Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--color-code-text);
+            overflow-x: auto;
+            margin-bottom: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid var(--color-accent);
+            color: var(--color-accent);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(100, 255, 218, 0.2);
+        }
+
+        /* Installation Guide */
+        .guide-section {
+            max-width: 1200px;
+            width: 100%;
+            margin-bottom: 50px;
+        }
+
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .guide-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 25px;
+        }
+
+        .guide-title {
+            font-size: 16px;
+            color: var(--color-accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .guide-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--color-accent);
+            border-radius: 50%;
+        }
+
+        .guide-content {
+            color: var(--color-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Usage Examples */
+        .usage-examples {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .example {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .example-title {
+            font-size: 16px;
+            color: var(--color-accent);
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .example-code {
+            background: var(--color-code-bg);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            color: var(--color-code-text);
+            overflow-x: auto;
+        }
+
+        /* Center lines */
+        .center-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .h-center {
+            width: 1px;
+            height: 12px;
+            left: 100px;
+            top: 24px;
+        }
+
+        .v-center {
+            width: 12px;
+            height: 1px;
+            left: 24px;
+            top: 100px;
+        }
+
+        /* Status */
+        .status {
+            margin-top: 15px;
+            padding: 6px 12px;
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--color-accent);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">Accelerometer Components</h1>
+        <p class="subtitle">Ready-to-use JavaScript components with copyable code</p>
+    </div>
+
+    <div class="main-grid">
+        <!-- Demo Panel -->
+        <div class="demo-panel">
+            <div class="panel-title">🎮 Live Demo</div>
+            
+            <div class="demo-grid">
+                <div class="accel-demo">
+                    <div class="accel-label">Horizontal (X)</div>
+                    <div class="h-accel" id="hAccel">
+                        <div class="h-track" id="hTrack"></div>
+                        <div class="center-line h-center"></div>
+                        <div class="h-knob" id="hKnob"></div>
+                    </div>
+                    <div class="value x" id="xValue">0.00</div>
+                </div>
+
+                <div class="accel-demo">
+                    <div class="accel-label">Vertical (Y)</div>
+                    <div class="v-accel" id="vAccel">
+                        <div class="v-track" id="vTrack"></div>
+                        <div class="center-line v-center"></div>
+                        <div class="v-knob" id="vKnob"></div>
+                    </div>
+                    <div class="value y" id="yValue">0.00</div>
+                </div>
+            </div>
+
+            <div class="result-box">
+                <div style="font-size: 12px; color: var(--color-muted); margin-bottom: 10px;">
+                    Acceleration Vector
+                </div>
+                <div class="coords">
+                    (<span class="coord x" id="vecX">0.00</span>, 
+                    <span class="coord y" id="vecY">0.00</span>)
+                </div>
+                <div class="angle" id="angle">0° UP</div>
+                <div class="status" id="status">Ready</div>
+            </div>
+        </div>
+
+        <!-- Code Panel -->
+        <div class="code-panel">
+            <div class="panel-title">💻 Component Code</div>
+            
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode('horizontal')">HorizontalAccelerometer</button>
+                <button class="code-tab" onclick="showCode('vertical')">VerticalAccelerometer</button>
+                <button class="code-tab" onclick="showCode('transformer')">CoordinateTransformer</button>
+                <button class="code-tab" onclick="showCode('result')">ResultDisplay</button>
+            </div>
+
+            <div id="horizontal-code" class="code-block">
+                <button class="copy-btn" onclick="copyCode('horizontal-code')">Copy</button>
+                <pre>// HORIZONTAL ACCELEROMETER COMPONENT
+// Usage: const xAccel = new HorizontalAccelerometer('knobId', 'trackId', 'valueId');
+
+class HorizontalAccelerometer {
+    constructor(knobId, trackId, valueId) {
+        this.knob = document.getElementById(knobId);
+        this.track = document.getElementById(trackId);
+        this.valueDisplay = document.getElementById(valueId);
+        
+        this.value = 0;
+        this.velocity = 0;
+        this.isDragging = false;
+        this.startX = 0;
+        this.startValue = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        this.knob.addEventListener('mousedown', (e) => this.startDrag(e.clientX));
+        this.knob.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.startDrag(e.touches[0].clientX);
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (this.isDragging) this.drag(e.clientX);
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (this.isDragging && e.touches[0]) {
+                e.preventDefault();
+                this.drag(e.touches[0].clientX);
+            }
+        }, { passive: false });
+        
+        document.addEventListener('mouseup', () => this.stopDrag());
+        document.addEventListener('touchend', () => this.stopDrag());
+    }
+    
+    startDrag(clientX) {
+        this.isDragging = true;
+        this.startX = clientX;
+        this.startValue = this.value;
+        this.velocity = 0;
+        this.updateTrackColor();
+    }
+    
+    drag(clientX) {
+        const delta = (clientX - this.startX) / 80;
+        this.value = Math.max(-1, Math.min(1, this.startValue + delta));
+        this.velocity = (this.value - this.startValue) * 0.3;
+        this.update();
+    }
+    
+    stopDrag() {
+        this.isDragging = false;
+        this.updateTrackColor();
+    }
+    
+    update() {
+        this.knob.style.left = `${85 + this.value * 80}px`;
+        this.valueDisplay.textContent = this.value.toFixed(2);
+        this.updateTrackColor();
+    }
+    
+    updateTrackColor() {
+        const intensity = Math.abs(this.value);
+        const velocityIntensity = Math.abs(this.velocity);
+        
+        if (this.isDragging) {
+            this.track.style.background = `rgba(0, 180, 216, ${0.3 + intensity * 0.4})`;
+        } else if (velocityIntensity > 0.05) {
+            this.track.style.background = `rgba(0, 180, 216, ${0.2 + velocityIntensity * 0.3})`;
+        } else {
+            this.track.style.background = `rgba(255, 255, 255, ${0.05 + intensity * 0.05})`;
+        }
+    }
+    
+    updatePhysics() {
+        if (!this.isDragging) {
+            const springForce = -this.value * 0.2;
+            this.velocity += springForce;
+            this.velocity *= 0.9;
+            this.value += this.velocity * 0.1;
+            
+            if (Math.abs(this.value) < 0.005 && Math.abs(this.velocity) < 0.005) {
+                this.value = this.velocity = 0;
+            }
+            
+            this.update();
+        }
+        
+        return this.value;
+    }
+    
+    setValue(newValue) {
+        this.value = Math.max(-1, Math.min(1, newValue));
+        this.velocity = 0;
+        this.update();
+    }
+}</pre>
+            </div>
+
+            <div id="vertical-code" class="code-block" style="display: none;">
+                <button class="copy-btn" onclick="copyCode('vertical-code')">Copy</button>
+                <pre>// VERTICAL ACCELEROMETER COMPONENT
+// Usage: const yAccel = new VerticalAccelerometer('knobId', 'trackId', 'valueId');
+
+class VerticalAccelerometer {
+    constructor(knobId, trackId, valueId) {
+        this.knob = document.getElementById(knobId);
+        this.track = document.getElementById(trackId);
+        this.valueDisplay = document.getElementById(valueId);
+        
+        this.value = 0;
+        this.velocity = 0;
+        this.isDragging = false;
+        this.startY = 0;
+        this.startValue = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        this.knob.addEventListener('mousedown', (e) => this.startDrag(e.clientY));
+        this.knob.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.startDrag(e.touches[0].clientY);
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (this.isDragging) this.drag(e.clientY);
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (this.isDragging && e.touches[0]) {
+                e.preventDefault();
+                this.drag(e.touches[0].clientY);
+            }
+        }, { passive: false });
+        
+        document.addEventListener('mouseup', () => this.stopDrag());
+        document.addEventListener('touchend', () => this.stopDrag());
+    }
+    
+    startDrag(clientY) {
+        this.isDragging = true;
+        this.startY = clientY;
+        this.startValue = this.value;
+        this.velocity = 0;
+        this.updateTrackColor();
+    }
+    
+    drag(clientY) {
+        const delta = (this.startY - clientY) / 80;
+        this.value = Math.max(-1, Math.min(1, this.startValue + delta));
+        this.velocity = (this.value - this.startValue) * 0.3;
+        this.update();
+    }
+    
+    stopDrag() {
+        this.isDragging = false;
+        this.updateTrackColor();
+    }
+    
+    update() {
+        this.knob.style.top = `${85 - this.value * 80}px`;
+        this.valueDisplay.textContent = this.value.toFixed(2);
+        this.updateTrackColor();
+    }
+    
+    updateTrackColor() {
+        const intensity = Math.abs(this.value);
+        const velocityIntensity = Math.abs(this.velocity);
+        
+        if (this.isDragging) {
+            this.track.style.background = `rgba(255, 109, 109, ${0.3 + intensity * 0.4})`;
+        } else if (velocityIntensity > 0.05) {
+            this.track.style.background = `rgba(255, 109, 109, ${0.2 + velocityIntensity * 0.3})`;
+        } else {
+            this.track.style.background = `rgba(255, 255, 255, ${0.05 + intensity * 0.05})`;
+        }
+    }
+    
+    updatePhysics() {
+        if (!this.isDragging) {
+            const springForce = -this.value * 0.2;
+            this.velocity += springForce;
+            this.velocity *= 0.9;
+            this.value += this.velocity * 0.1;
+            
+            if (Math.abs(this.value) < 0.005 && Math.abs(this.velocity) < 0.005) {
+                this.value = this.velocity = 0;
+            }
+            
+            this.update();
+        }
+        
+        return this.value;
+    }
+    
+    setValue(newValue) {
+        this.value = Math.max(-1, Math.min(1, newValue));
+        this.velocity = 0;
+        this.update();
+    }
+}</pre>
+            </div>
+
+            <div id="transformer-code" class="code-block" style="display: none;">
+                <button class="copy-btn" onclick="copyCode('transformer-code')">Copy</button>
+                <pre>// COORDINATE TRANSFORMER (UTILITY)
+// Usage: const angle = CoordinateTransformer.toCompassAngle(x, y);
+
+class CoordinateTransformer {
+    // Convert math coordinates (0° = right, 90° = up)
+    // to compass coordinates (0° = up, 90° = right)
+    static toCompassAngle(x, y) {
+        const mathAngle = Math.atan2(y, x) * 180 / Math.PI;
+        let compassAngle = 90 - mathAngle;
+        if (compassAngle < 0) compassAngle += 360;
+        if (compassAngle >= 360) compassAngle -= 360;
+        return compassAngle;
+    }
+    
+    // Get cardinal direction from angle
+    static getDirection(angle) {
+        const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        const index = Math.round(angle / 45) % 8;
+        return directions[index];
+    }
+    
+    // Get full direction name
+    static getDirectionFull(angle) {
+        if (angle >= 337.5 || angle < 22.5) return "UP";
+        if (angle >= 22.5 && angle < 67.5) return "UP-RIGHT";
+        if (angle >= 67.5 && angle < 112.5) return "RIGHT";
+        if (angle >= 112.5 && angle < 157.5) return "DOWN-RIGHT";
+        if (angle >= 157.5 && angle < 202.5) return "DOWN";
+        if (angle >= 202.5 && angle < 247.5) return "DOWN-LEFT";
+        if (angle >= 247.5 && angle < 292.5) return "LEFT";
+        return "UP-LEFT";
+    }
+}</pre>
+            </div>
+
+            <div id="result-code" class="code-block" style="display: none;">
+                <button class="copy-btn" onclick="copyCode('result-code')">Copy</button>
+                <pre>// RESULT DISPLAY COMPONENT
+// Usage: const result = new ResultDisplay();
+
+class ResultDisplay {
+    constructor() {
+        this.vecX = document.getElementById('vecX');
+        this.vecY = document.getElementById('vecY');
+        this.angle = document.getElementById('angle');
+        this.status = document.getElementById('status');
+        this.lastUpdate = 0;
+    }
+    
+    update(x, y, isDragging = false) {
+        // Update coordinates
+        this.vecX.textContent = x.toFixed(2);
+        this.vecY.textContent = y.toFixed(2);
+        
+        // Calculate compass angle
+        const compassAngle = CoordinateTransformer.toCompassAngle(x, y);
+        const direction = CoordinateTransformer.getDirectionFull(compassAngle);
+        
+        // Update angle display
+        this.angle.textContent = `${Math.round(compassAngle)}° ${direction}`;
+        
+        // Color code based on acceleration magnitude
+        const magnitude = Math.sqrt(x*x + y*y);
+        if (magnitude > 0.7) {
+            this.angle.style.color = '#ff6d6d';
+        } else if (magnitude > 0.3) {
+            this.angle.style.color = '#ffd166';
+        } else {
+            this.angle.style.color = '#64ffda';
+        }
+        
+        // Update status indicator
+        if (isDragging) {
+            this.status.textContent = "Dragging";
+            this.status.style.background = 'rgba(100, 255, 218, 0.2)';
+        } else if (magnitude > 0.01) {
+            this.status.textContent = "Returning to zero";
+            this.status.style.background = 'rgba(255, 109, 109, 0.1)';
+        } else {
+            this.status.textContent = "Ready";
+            this.status.style.background = 'rgba(100, 255, 218, 0.1)';
+        }
+        
+        this.lastUpdate = Date.now();
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Guide -->
+    <div class="guide-section">
+        <div class="panel-title" style="margin-bottom: 20px;">📦 Installation & Usage</div>
+        
+        <div class="guide-grid">
+            <div class="guide-card">
+                <div class="guide-title">Step 1: Include Components</div>
+                <div class="guide-content">
+                    Copy the component classes you need into your project. Each component is standalone and only requires vanilla JavaScript.
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="guide-title">Step 2: HTML Structure</div>
+                <div class="guide-content">
+                    Create HTML elements with matching IDs. The components will automatically attach to these elements.
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="guide-title">Step 3: Initialize</div>
+                <div class="guide-content">
+                    Instantiate the components and start the animation loop. Components handle their own physics and rendering.
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="guide-title">Step 4: Use Values</div>
+                <div class="guide-content">
+                    Access acceleration values from the components. Values range from -1 to 1 on each axis.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Examples -->
+    <div class="usage-examples">
+        <div class="panel-title" style="margin-bottom: 20px;">🚀 Usage Examples</div>
+        
+        <div class="example">
+            <div class="example-title">Basic Setup</div>
+            <div class="example-code">
+// 1. Create components
+const xAccel = new HorizontalAccelerometer('hKnob', 'hTrack', 'xValue');
+const yAccel = new VerticalAccelerometer('vKnob', 'vTrack', 'yValue');
+const result = new ResultDisplay();
+
+// 2. Animation loop
+function animate() {
+    const x = xAccel.updatePhysics();
+    const y = yAccel.updatePhysics();
+    result.update(x, y, xAccel.isDragging || yAccel.isDragging);
+    requestAnimationFrame(animate);
+}
+animate();
+
+// 3. Get current values anytime
+console.log(`X: ${xAccel.value}, Y: ${yAccel.value}`);
+            </div>
+        </div>
+        
+        <div class="example">
+            <div class="example-title">Game Controller Example</div>
+            <div class="example-code">
+// Game controller using accelerometer values
+class GameController {
+    constructor() {
+        this.xAccel = new HorizontalAccelerometer('xCtrl', 'xTrack', 'xDisplay');
+        this.yAccel = new VerticalAccelerometer('yCtrl', 'yTrack', 'yDisplay');
+        
+        this.player = { x: 0, y: 0 };
+        this.animate();
+    }
+    
+    animate() {
+        // Get acceleration values (-1 to 1)
+        const accelX = this.xAccel.updatePhysics();
+        const accelY = this.yAccel.updatePhysics();
+        
+        // Apply to player position (with some scaling)
+        this.player.x += accelX * 5;
+        this.player.y += accelY * 5;
+        
+        // Keep player in bounds
+        this.player.x = Math.max(-100, Math.min(100, this.player.x));
+        this.player.y = Math.max(-100, Math.min(100, this.player.y));
+        
+        // Update game
+        this.updateGame();
+        requestAnimationFrame(() => this.animate());
+    }
+    
+    updateGame() {
+        // Your game logic here
+        document.getElementById('player').style.transform = 
+            `translate(${this.player.x}px, ${this.player.y}px)`;
+    }
+}
+
+// Start the game
+const game = new GameController();
+            </div>
+        </div>
+        
+        <div class="example">
+            <div class="example-title">Programmatic Control</div>
+            <div class="example-code">
+// You can also set values programmatically
+const accel = new HorizontalAccelerometer('knob', 'track', 'value');
+
+// Set specific value (-1 to 1)
+accel.setValue(0.5);  // Move to right position
+
+// Simulate a "bump"
+setTimeout(() => {
+    accel.setValue(-0.3);  // Move to left position
+}, 1000);
+
+// Reset to center
+setTimeout(() => {
+    accel.setValue(0);  // Return to center
+}, 2000);
+
+// Listen for changes
+const observer = {
+    update: (x, y) => {
+        console.log(`Acceleration changed: X=${x.toFixed(2)}, Y=${y.toFixed(2)}`);
+        // Update your application state here
+    }
+};
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // COMPONENT IMPLEMENTATIONS (Same as in code blocks)
+        // ============================================================================
+        
+        // Horizontal Accelerometer Component
+        class HorizontalAccelerometer {
+            constructor(knobId, trackId, valueId) {
+                this.knob = document.getElementById(knobId);
+                this.track = document.getElementById(trackId);
+                this.valueDisplay = document.getElementById(valueId);
+                
+                this.value = 0;
+                this.velocity = 0;
+                this.isDragging = false;
+                this.startX = 0;
+                this.startValue = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.knob.addEventListener('mousedown', (e) => this.startDrag(e.clientX));
+                this.knob.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startDrag(e.touches[0].clientX);
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isDragging) this.drag(e.clientX);
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (this.isDragging && e.touches[0]) {
+                        e.preventDefault();
+                        this.drag(e.touches[0].clientX);
+                    }
+                }, { passive: false });
+                
+                document.addEventListener('mouseup', () => this.stopDrag());
+                document.addEventListener('touchend', () => this.stopDrag());
+            }
+            
+            startDrag(clientX) {
+                this.isDragging = true;
+                this.startX = clientX;
+                this.startValue = this.value;
+                this.velocity = 0;
+                this.updateTrackColor();
+            }
+            
+            drag(clientX) {
+                const delta = (clientX - this.startX) / 80;
+                this.value = Math.max(-1, Math.min(1, this.startValue + delta));
+                this.velocity = (this.value - this.startValue) * 0.3;
+                this.update();
+            }
+            
+            stopDrag() {
+                this.isDragging = false;
+                this.updateTrackColor();
+            }
+            
+            update() {
+                this.knob.style.left = `${85 + this.value * 80}px`;
+                this.valueDisplay.textContent = this.value.toFixed(2);
+                this.updateTrackColor();
+            }
+            
+            updateTrackColor() {
+                const intensity = Math.abs(this.value);
+                const velocityIntensity = Math.abs(this.velocity);
+                
+                if (this.isDragging) {
+                    this.track.style.background = `rgba(0, 180, 216, ${0.3 + intensity * 0.4})`;
+                } else if (velocityIntensity > 0.05) {
+                    this.track.style.background = `rgba(0, 180, 216, ${0.2 + velocityIntensity * 0.3})`;
+                } else {
+                    this.track.style.background = `rgba(255, 255, 255, ${0.05 + intensity * 0.05})`;
+                }
+            }
+            
+            updatePhysics() {
+                if (!this.isDragging) {
+                    const springForce = -this.value * 0.2;
+                    this.velocity += springForce;
+                    this.velocity *= 0.9;
+                    this.value += this.velocity * 0.1;
+                    
+                    if (Math.abs(this.value) < 0.005 && Math.abs(this.velocity) < 0.005) {
+                        this.value = this.velocity = 0;
+                    }
+                    
+                    this.update();
+                }
+                
+                return this.value;
+            }
+        }
+
+        // Vertical Accelerometer Component
+        class VerticalAccelerometer {
+            constructor(knobId, trackId, valueId) {
+                this.knob = document.getElementById(knobId);
+                this.track = document.getElementById(trackId);
+                this.valueDisplay = document.getElementById(valueId);
+                
+                this.value = 0;
+                this.velocity = 0;
+                this.isDragging = false;
+                this.startY = 0;
+                this.startValue = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.knob.addEventListener('mousedown', (e) => this.startDrag(e.clientY));
+                this.knob.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startDrag(e.touches[0].clientY);
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isDragging) this.drag(e.clientY);
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (this.isDragging && e.touches[0]) {
+                        e.preventDefault();
+                        this.drag(e.touches[0].clientY);
+                    }
+                }, { passive: false });
+                
+                document.addEventListener('mouseup', () => this.stopDrag());
+                document.addEventListener('touchend', () => this.stopDrag());
+            }
+            
+            startDrag(clientY) {
+                this.isDragging = true;
+                this.startY = clientY;
+                this.startValue = this.value;
+                this.velocity = 0;
+                this.updateTrackColor();
+            }
+            
+            drag(clientY) {
+                const delta = (this.startY - clientY) / 80;
+                this.value = Math.max(-1, Math.min(1, this.startValue + delta));
+                this.velocity = (this.value - this.startValue) * 0.3;
+                this.update();
+            }
+            
+            stopDrag() {
+                this.isDragging = false;
+                this.updateTrackColor();
+            }
+            
+            update() {
+                this.knob.style.top = `${85 - this.value * 80}px`;
+                this.valueDisplay.textContent = this.value.toFixed(2);
+                this.updateTrackColor();
+            }
+            
+            updateTrackColor() {
+                const intensity = Math.abs(this.value);
+                const velocityIntensity = Math.abs(this.velocity);
+                
+                if (this.isDragging) {
+                    this.track.style.background = `rgba(255, 109, 109, ${0.3 + intensity * 0.4})`;
+                } else if (velocityIntensity > 0.05) {
+                    this.track.style.background = `rgba(255, 109, 109, ${0.2 + velocityIntensity * 0.3})`;
+                } else {
+                    this.track.style.background = `rgba(255, 255, 255, ${0.05 + intensity * 0.05})`;
+                }
+            }
+            
+            updatePhysics() {
+                if (!this.isDragging) {
+                    const springForce = -this.value * 0.2;
+                    this.velocity += springForce;
+                    this.velocity *= 0.9;
+                    this.value += this.velocity * 0.1;
+                    
+                    if (Math.abs(this.value) < 0.005 && Math.abs(this.velocity) < 0.005) {
+                        this.value = this.velocity = 0;
+                    }
+                    
+                    this.update();
+                }
+                
+                return this.value;
+            }
+        }
+
+        // Coordinate Transformer
+        class CoordinateTransformer {
+            static toCompassAngle(x, y) {
+                const mathAngle = Math.atan2(y, x) * 180 / Math.PI;
+                let compassAngle = 90 - mathAngle;
+                if (compassAngle < 0) compassAngle += 360;
+                if (compassAngle >= 360) compassAngle -= 360;
+                return compassAngle;
+            }
+            
+            static getDirection(angle) {
+                const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+                const index = Math.round(angle / 45) % 8;
+                return directions[index];
+            }
+            
+            static getDirectionFull(angle) {
+                if (angle >= 337.5 || angle < 22.5) return "UP";
+                if (angle >= 22.5 && angle < 67.5) return "UP-RIGHT";
+                if (angle >= 67.5 && angle < 112.5) return "RIGHT";
+                if (angle >= 112.5 && angle < 157.5) return "DOWN-RIGHT";
+                if (angle >= 157.5 && angle < 202.5) return "DOWN";
+                if (angle >= 202.5 && angle < 247.5) return "DOWN-LEFT";
+                if (angle >= 247.5 && angle < 292.5) return "LEFT";
+                return "UP-LEFT";
+            }
+        }
+
+        // Result Display
+        class ResultDisplay {
+            constructor() {
+                this.vecX = document.getElementById('vecX');
+                this.vecY = document.getElementById('vecY');
+                this.angle = document.getElementById('angle');
+                this.status = document.getElementById('status');
+                this.lastUpdate = 0;
+            }
+            
+            update(x, y, isDragging = false) {
+                this.vecX.textContent = x.toFixed(2);
+                this.vecY.textContent = y.toFixed(2);
+                
+                const compassAngle = CoordinateTransformer.toCompassAngle(x, y);
+                const direction = CoordinateTransformer.getDirectionFull(compassAngle);
+                
+                this.angle.textContent = `${Math.round(compassAngle)}° ${direction}`;
+                
+                const magnitude = Math.sqrt(x*x + y*y);
+                if (magnitude > 0.7) {
+                    this.angle.style.color = '#ff6d6d';
+                } else if (magnitude > 0.3) {
+                    this.angle.style.color = '#ffd166';
+                } else {
+                    this.angle.style.color = '#64ffda';
+                }
+                
+                if (isDragging) {
+                    this.status.textContent = "Dragging";
+                    this.status.style.background = 'rgba(100, 255, 218, 0.2)';
+                } else if (magnitude > 0.01) {
+                    this.status.textContent = "Returning to zero";
+                    this.status.style.background = 'rgba(255, 109, 109, 0.1)';
+                } else {
+                    this.status.textContent = "Ready";
+                    this.status.style.background = 'rgba(100, 255, 218, 0.1)';
+                }
+                
+                this.lastUpdate = Date.now();
+            }
+        }
+
+        // ============================================================================
+        // DEMO APPLICATION
+        // ============================================================================
+        
+        // Initialize demo
+        const xAccel = new HorizontalAccelerometer('hKnob', 'hTrack', 'xValue');
+        const yAccel = new VerticalAccelerometer('vKnob', 'vTrack', 'yValue');
+        const result = new ResultDisplay();
+
+        function animate() {
+            const x = xAccel.updatePhysics();
+            const y = yAccel.updatePhysics();
+            const isDragging = xAccel.isDragging || yAccel.isDragging;
+            result.update(x, y, isDragging);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // ============================================================================
+        // CODE DISPLAY UTILITIES
+        // ============================================================================
+        
+        function showCode(component) {
+            // Hide all code blocks
+            document.querySelectorAll('.code-block').forEach(block => {
+                block.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.code-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected code block
+            document.getElementById(`${component}-code`).style.display = 'block';
+            
+            // Activate selected tab
+            document.querySelector(`.code-tab[onclick="showCode('${component}')"]`).classList.add('active');
+        }
+        
+        function copyCode(elementId) {
+            const codeBlock = document.getElementById(elementId);
+            const code = codeBlock.querySelector('pre').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = codeBlock.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = 'rgba(100, 255, 218, 0.3)';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'rgba(100, 255, 218, 0.1)';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
