@@ -618,7 +618,7 @@
                 } else {
                     // Vertical slider position (note: SVG y-axis goes down)
                     const position = this.vertical.centerY - (value * this.vertical.range);
-                    this.verticalSlider.setAttribute('transform', `translate(0, ${position - this.vertical.centerY})`);
+                    this.verticalSlider.setAttribute('transform', `translate(0, ${position - this.vertical.centerY}, 0)`); // Added ", 0"
                     
                     // Update glow color
                     this.updateGlowColor(this.verticalGlow, value);
