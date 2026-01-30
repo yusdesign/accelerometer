@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Axis SVG Accelerometer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+            align-items: start;
+        }
+
+        .control-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .control-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .control-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .value-indicator {
+            font-size: 24px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .accelerometer {
+            position: relative;
+            cursor: grab;
+            transition: filter 0.3s ease;
+        }
+
+        .accelerometer:active {
+            cursor: grabbing;
+        }
+
+        .accelerometer.active {
+            filter: brightness(1.2);
+        }
+
+        .track {
+            fill: rgba(255, 255, 255, 0.08);
+            stroke: rgba(255, 255, 255, 0.15);
+            stroke-width: 2;
+            rx: 10;
+            ry: 10;
+        }
+
+        .center-line {
+            stroke: rgba(255, 255, 255, 0.25);
+            stroke-width: 1;
+            stroke-dasharray: 4, 4;
+        }
+
+        .slider {
+            transition: transform 0.1s ease-out;
+        }
+
+        .slider-glow {
+            fill: url(#gradient);
+            filter: url(#glow);
+            opacity: 0.9;
+        }
+
+        .slider-body {
+            fill: url(#metal-gradient);
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 1.5;
+            filter: url(#inset-shadow);
+        }
+
+        .ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .tick {
+            text-align: center;
+            width: 40px;
+        }
+
+        .vertical-ticks {
+            position: absolute;
+            left: -30px;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            width: 25px;
+        }
+
+        .vertical-tick {
+            text-align: right;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .combined-display {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 10px;
+        }
+
+        .vector-display {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .vector-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .vector-values {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .vector-value {
+            text-align: center;
+        }
+
+        .vector-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .vector-number {
+            font-size: 32px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .magnitude-bar {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .magnitude-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FF9800, #F44336);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .magnitude-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .status {
+            margin-top: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .axis-label {
+            text-align: center;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Hide SVG filters */
+        svg[hidden] {
+            display: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .combined-display {
+                grid-column: 1;
+            }
+            
+            .vector-values {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Horizontal Accelerometer -->
+        <div class="control-container">
+            <div class="control-header">
+                <div class="control-title">X-Axis Acceleration</div>
+                <div class="value-indicator" id="xValue">0.00</div>
+            </div>
+            
+            <div class="accelerometer" id="horizontalAccel">
+                <svg width="400" height="150" viewBox="0 0 400 150">
+                    <!-- Background Track -->
+                    <rect class="track" x="25" y="60" width="350" height="30"/>
+                    
+                    <!-- Center Line -->
+                    <line class="center-line" x1="200" y1="60" x2="200" y2="90"/>
+                    
+                    <!-- Scale Marks -->
+                    <line x1="100" y1="55" x2="100" y2="65" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <line x1="300" y1="55" x2="300" y2="65" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <line x1="50" y1="55" x2="50" y2="65" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                    <line x1="350" y1="55" x2="350" y2="65" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                    
+                    <!-- Slider -->
+                    <g class="slider" id="horizontalSlider">
+                        <rect class="slider-glow" id="horizontalGlow" x="180" y="40" width="40" height="70" rx="8"/>
+                        <rect class="slider-body" x="185" y="45" width="30" height="60" rx="6"/>
+                        
+                        <!-- Center indicator on slider -->
+                        <line x1="200" y1="45" x2="200" y2="105" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+                    </g>
+                    
+                    <!-- Center Mark -->
+                    <circle cx="200" cy="75" r="4" fill="rgba(255, 255, 255, 0.7)"/>
+                </svg>
+                
+                <div class="axis-label">Horizontal Axis (Left ↔ Right)</div>
+                <div class="ticks">
+                    <div class="tick">-1.0</div>
+                    <div class="tick">-0.5</div>
+                    <div class="tick">0</div>
+                    <div class="tick">0.5</div>
+                    <div class="tick">1.0</div>
+                </div>
+            </div>
+            
+            <div class="status" id="xStatus">Ready</div>
+        </div>
+
+        <!-- Vertical Accelerometer -->
+        <div class="control-container">
+            <div class="control-header">
+                <div class="control-title">Y-Axis Acceleration</div>
+                <div class="value-indicator" id="yValue">0.00</div>
+            </div>
+            
+            <div class="accelerometer" id="verticalAccel">
+                <div class="vertical-ticks">
+                    <div class="vertical-tick">1.0</div>
+                    <div class="vertical-tick">0.5</div>
+                    <div class="vertical-tick">0</div>
+                    <div class="vertical-tick">-0.5</div>
+                    <div class="vertical-tick">-1.0</div>
+                </div>
+                
+                <svg width="150" height="400" viewBox="0 0 150 400">
+                    <!-- Background Track (Vertical) -->
+                    <rect class="track" x="60" y="25" width="30" height="350" rx="10" ry="10"/>
+                    
+                    <!-- Center Line -->
+                    <line class="center-line" x1="60" y1="200" x2="90" y2="200"/>
+                    
+                    <!-- Scale Marks -->
+                    <line x1="55" y1="100" x2="65" y2="100" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <line x1="55" y1="300" x2="65" y2="300" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <line x1="55" y1="50" x2="65" y2="50" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                    <line x1="55" y1="350" x2="65" y2="350" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                    
+                    <!-- Slider (Vertical) -->
+                    <g class="slider" id="verticalSlider">
+                        <rect class="slider-glow" id="verticalGlow" x="40" y="180" width="70" height="40" rx="8"/>
+                        <rect class="slider-body" x="45" y="185" width="60" height="30" rx="6"/>
+                        
+                        <!-- Center indicator on slider -->
+                        <line x1="45" y1="200" x2="105" y2="200" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+                    </g>
+                    
+                    <!-- Center Mark -->
+                    <circle cx="75" cy="200" r="4" fill="rgba(255, 255, 255, 0.7)"/>
+                </svg>
+                
+                <div class="axis-label" style="text-align: center; margin-left: 30px;">Vertical Axis (Down ↔ Up)</div>
+            </div>
+            
+            <div class="status" id="yStatus">Ready</div>
+        </div>
+
+        <!-- Combined Vector Display -->
+        <div class="combined-display">
+            <div class="vector-display">
+                <div class="vector-title">Combined Acceleration Vector</div>
+                
+                <div class="vector-values">
+                    <div class="vector-value">
+                        <div class="vector-label">X Component</div>
+                        <div class="vector-number" id="vectorX">0.00</div>
+                    </div>
+                    
+                    <div class="vector-value">
+                        <div class="vector-label">Y Component</div>
+                        <div class="vector-number" id="vectorY">0.00</div>
+                    </div>
+                    
+                    <div class="vector-value">
+                        <div class="vector-label">Magnitude</div>
+                        <div class="vector-number" id="vectorMag">0.00</div>
+                    </div>
+                </div>
+                
+                <div class="magnitude-bar">
+                    <div class="magnitude-fill" id="magnitudeFill"></div>
+                    <div class="magnitude-label">Acceleration Magnitude</div>
+                </div>
+                
+                <!-- Direction Indicator -->
+                <div style="text-align: center; margin-top: 20px;">
+                    <svg width="120" height="120" viewBox="0 0 120 120" style="margin: 0 auto;">
+                        <circle cx="60" cy="60" r="55" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                        <line x1="60" y1="60" x2="60" y2="20" stroke="rgba(255,255,255,0.3)" stroke-width="2" id="directionArrow"/>
+                        <circle cx="60" cy="60" r="8" fill="rgba(255,255,255,0.2)"/>
+                        <text x="60" y="90" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">Direction</text>
+                    </svg>
+                </div>
+                
+                <div class="status" id="vectorStatus">Both axes at zero</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG Filters Definition -->
+    <svg hidden>
+        <defs>
+            <!-- Metallic gradient for slider -->
+            <linearGradient id="metal-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#5a8fc8;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#3a6ba8;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#2a5b98;stop-opacity:1" />
+            </linearGradient>
+
+            <!-- Dynamic glow gradient -->
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#ff6b6b" />
+                <stop offset="50%" style="stop-color:#4ecdc4" />
+                <stop offset="100%" style="stop-color:#45b7d1" />
+            </linearGradient>
+
+            <!-- Glow filter -->
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+
+            <!-- Inset shadow -->
+            <filter id="inset-shadow">
+                <feOffset dx="0" dy="2"/>
+                <feGaussianBlur stdDeviation="2" result="offset-blur"/>
+                <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+                <feFlood flood-color="rgba(0,0,0,0.4)" result="color"/>
+                <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+                <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+            </filter>
+
+            <!-- Velocity stretch filter -->
+            <filter id="velocity-stretch">
+                <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="1" result="turbulence"/>
+                <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="1" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <script>
+        class DualAxisAccelerometer {
+            constructor() {
+                // Horizontal axis elements
+                this.horizontalAccel = document.getElementById('horizontalAccel');
+                this.horizontalSlider = document.getElementById('horizontalSlider');
+                this.horizontalGlow = document.getElementById('horizontalGlow');
+                this.xValue = document.getElementById('xValue');
+                this.xStatus = document.getElementById('xStatus');
+                
+                // Vertical axis elements
+                this.verticalAccel = document.getElementById('verticalAccel');
+                this.verticalSlider = document.getElementById('verticalSlider');
+                this.verticalGlow = document.getElementById('verticalGlow');
+                this.yValue = document.getElementById('yValue');
+                this.yStatus = document.getElementById('yStatus');
+                
+                // Vector display elements
+                this.vectorX = document.getElementById('vectorX');
+                this.vectorY = document.getElementById('vectorY');
+                this.vectorMag = document.getElementById('vectorMag');
+                this.magnitudeFill = document.getElementById('magnitudeFill');
+                this.directionArrow = document.getElementById('directionArrow');
+                this.vectorStatus = document.getElementById('vectorStatus');
+                
+                // Physics properties for both axes
+                this.values = { x: 0, y: 0 };
+                this.velocities = { x: 0, y: 0 };
+                this.isDragging = { x: false, y: false };
+                this.startPositions = { x: 0, y: 0 };
+                this.startValues = { x: 0, y: 0 };
+                
+                // Spring physics
+                this.springK = 0.25;
+                this.damping = 0.85;
+                
+                // Animation
+                this.animationId = null;
+                this.lastTime = 0;
+                
+                // Track dimensions
+                this.horizontal = {
+                    minX: 25,
+                    maxX: 375,
+                    centerX: 200,
+                    sliderWidth: 40,
+                    range: 175
+                };
+                
+                this.vertical = {
+                    minY: 25,
+                    maxY: 375,
+                    centerY: 200,
+                    sliderHeight: 40,
+                    range: 175
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.animate();
+                this.updateVectorDisplay();
+            }
+            
+            bindEvents() {
+                // Horizontal axis events
+                this.horizontalAccel.addEventListener('mousedown', (e) => this.startDrag('x', e.clientX, e.clientY));
+                this.horizontalAccel.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    this.startDrag('x', touch.clientX, touch.clientY);
+                });
+                
+                // Vertical axis events
+                this.verticalAccel.addEventListener('mousedown', (e) => this.startDrag('y', e.clientX, e.clientY));
+                this.verticalAccel.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    this.startDrag('y', touch.clientX, touch.clientY);
+                });
+                
+                // Global events
+                document.addEventListener('mousemove', (e) => this.updateDrag(e.clientX, e.clientY));
+                document.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    this.updateDrag(touch.clientX, touch.clientY);
+                });
+                
+                document.addEventListener('mouseup', () => this.endDrag());
+                document.addEventListener('touchend', () => this.endDrag());
+                
+                // Prevent context menu
+                [this.horizontalAccel, this.verticalAccel].forEach(el => {
+                    el.addEventListener('contextmenu', (e) => e.preventDefault());
+                });
+            }
+            
+            startDrag(axis, clientX, clientY) {
+                this.isDragging[axis] = true;
+                this.startPositions[axis] = axis === 'x' ? clientX : clientY;
+                this.startValues[axis] = this.values[axis];
+                this.velocities[axis] = 0;
+                
+                // Visual feedback
+                const element = axis === 'x' ? this.horizontalAccel : this.verticalAccel;
+                element.classList.add('active');
+                
+                // Status update
+                this[axis + 'Status'].textContent = axis === 'x' ? 'Dragging horizontally...' : 'Dragging vertically...';
+            }
+            
+            updateDrag(clientX, clientY) {
+                ['x', 'y'].forEach(axis => {
+                    if (!this.isDragging[axis]) return;
+                    
+                    const startPos = this.startPositions[axis];
+                    const currentPos = axis === 'x' ? clientX : clientY;
+                    const delta = currentPos - startPos;
+                    const maxDelta = axis === 'x' ? 200 : 200; // Maximum drag distance
+                    
+                    // Calculate new value (-1 to 1)
+                    this.values[axis] = Math.max(-1, Math.min(1, this.startValues[axis] + delta / maxDelta));
+                    
+                    // Calculate velocity
+                    this.velocities[axis] = (this.values[axis] - this.startValues[axis]) * 0.4;
+                    
+                    this.updateAxisVisuals(axis);
+                });
+                
+                this.updateVectorDisplay();
+            }
+            
+            endDrag() {
+                ['x', 'y'].forEach(axis => {
+                    if (!this.isDragging[axis]) return;
+                    
+                    this.isDragging[axis] = false;
+                    this[axis + 'Status'].textContent = 'Returning to zero...';
+                    
+                    // Remove active class
+                    const element = axis === 'x' ? this.horizontalAccel : this.verticalAccel;
+                    element.classList.remove('active');
+                    
+                    // Apply bounce effect
+                    this.velocities[axis] *= 1.3;
+                });
+            }
+            
+            updateAxisVisuals(axis) {
+                const value = this.values[axis];
+                const velocity = this.velocities[axis];
+                
+                if (axis === 'x') {
+                    // Horizontal slider position
+                    const position = this.horizontal.centerX + (value * this.horizontal.range);
+                    this.horizontalSlider.setAttribute('transform', `translate(${position - this.horizontal.centerX}, 0)`);
+                    
+                    // Update glow color
+                    this.updateGlowColor(this.horizontalGlow, value);
+                    
+                    // Update value display
+                    const color = this.getValueColor(value);
+                    this.xValue.innerHTML = `<span style="color:${color}">${value.toFixed(2)}</span>`;
+                    
+                    // Add stretch effect for rapid movement
+                    if (Math.abs(velocity) > 0.08) {
+                        this.horizontalGlow.style.filter = 'url(#glow) url(#velocity-stretch)';
+                    } else {
+                        this.horizontalGlow.style.filter = 'url(#glow)';
+                    }
+                } else {
+                    // Vertical slider position (note: SVG y-axis goes down)
+                    const position = this.vertical.centerY - (value * this.vertical.range);
+                    this.verticalSlider.setAttribute('transform', `translate(0, ${position - this.vertical.centerY})`);
+                    
+                    // Update glow color
+                    this.updateGlowColor(this.verticalGlow, value);
+                    
+                    // Update value display
+                    const color = this.getValueColor(value);
+                    this.yValue.innerHTML = `<span style="color:${color}">${value.toFixed(2)}</span>`;
+                    
+                    // Add stretch effect for rapid movement
+                    if (Math.abs(velocity) > 0.08) {
+                        this.verticalGlow.style.filter = 'url(#glow) url(#velocity-stretch)';
+                    } else {
+                        this.verticalGlow.style.filter = 'url(#glow)';
+                    }
+                }
+            }
+            
+            updateGlowColor(element, value) {
+                // Update gradient based on value
+                const gradient = document.getElementById('gradient');
+                if (!gradient) return;
+                
+                const stops = gradient.querySelectorAll('stop');
+                if (stops.length >= 3) {
+                    if (value >= 0) {
+                        // Positive: blue/cyan gradient
+                        const intensity = Math.abs(value);
+                        stops[0].setAttribute('stop-color', `hsl(${200 - intensity * 50}, 80%, 60%)`);
+                        stops[1].setAttribute('stop-color', `hsl(${180 - intensity * 40}, 90%, 60%)`);
+                        stops[2].setAttribute('stop-color', `hsl(${160 - intensity * 30}, 100%, 60%)`);
+                    } else {
+                        // Negative: red/orange gradient
+                        const intensity = Math.abs(value);
+                        stops[0].setAttribute('stop-color', `hsl(${0 + intensity * 20}, 100%, 60%)`);
+                        stops[1].setAttribute('stop-color', `hsl(${20 + intensity * 10}, 90%, 60%)`);
+                        stops[2].setAttribute('stop-color', `hsl(${40 + intensity * 20}, 80%, 60%)`);
+                    }
+                }
+            }
+            
+            getValueColor(value) {
+                const absValue = Math.abs(value);
+                if (absValue < 0.3) return '#4CAF50'; // Green
+                if (absValue < 0.7) return '#FF9800'; // Orange
+                return '#F44336'; // Red
+            }
+            
+            updateVectorDisplay() {
+                const x = this.values.x;
+                const y = this.values.y;
+                const magnitude = Math.sqrt(x * x + y * y);
+                const angle = Math.atan2(y, x);
+                
+                // Update vector values
+                this.vectorX.textContent = x.toFixed(2);
+                this.vectorY.textContent = y.toFixed(2);
+                this.vectorMag.textContent = magnitude.toFixed(2);
+                
+                // Update magnitude bar (max magnitude = √2 ≈ 1.414)
+                const magnitudePercent = Math.min(100, (magnitude / 1.414) * 100);
+                this.magnitudeFill.style.width = `${magnitudePercent}%`;
+                
+                // Update direction arrow
+                const arrowLength = 30;
+                const arrowX = 60 + Math.cos(angle) * arrowLength;
+                const arrowY = 60 - Math.sin(angle) * arrowLength; // SVG Y is inverted
+                
+                this.directionArrow.setAttribute('x2', arrowX);
+                this.directionArrow.setAttribute('y2', arrowY);
+                
+                // Color the arrow based on magnitude
+                const arrowColor = magnitude < 0.3 ? '#4CAF50' : 
+                                 magnitude < 0.7 ? '#FF9800' : '#F44336';
+                this.directionArrow.setAttribute('stroke', arrowColor);
+                this.directionArrow.setAttribute('stroke-width', Math.max(2, magnitude * 4));
+                
+                // Update status
+                if (magnitude < 0.01) {
+                    this.vectorStatus.textContent = 'Both axes at zero';
+                } else {
+                    const degrees = ((angle * 180 / Math.PI) + 360) % 360;
+                    this.vectorStatus.textContent = `Direction: ${degrees.toFixed(0)}°, Magnitude: ${magnitude.toFixed(2)}`;
+                }
+            }
+            
+            animate(time = 0) {
+                const deltaTime = this.lastTime ? (time - this.lastTime) / 16.67 : 1;
+                this.lastTime = time;
+                
+                // Apply spring physics to both axes when not dragging
+                ['x', 'y'].forEach(axis => {
+                    if (!this.isDragging[axis]) {
+                        // Spring force pulls toward zero
+                        const springForce = -this.values[axis] * this.springK;
+                        
+                        // Update velocity with damping
+                        this.velocities[axis] += springForce;
+                        this.velocities[axis] *= this.damping;
+                        
+                        // Update value
+                        this.values[axis] += this.velocities[axis] * deltaTime * 0.1;
+                        
+                        // Snap to zero if very close
+                        if (Math.abs(this.values[axis]) < 0.005 && Math.abs(this.velocities[axis]) < 0.005) {
+                            this.values[axis] = 0;
+                            this.velocities[axis] = 0;
+                            if (this[axis + 'Status'].textContent.includes('Returning')) {
+                                this[axis + 'Status'].textContent = 'Ready';
+                            }
+                        }
+                        
+                        this.updateAxisVisuals(axis);
+                    }
+                });
+                
+                this.updateVectorDisplay();
+                this.animationId = requestAnimationFrame(this.animate.bind(this));
+            }
+            
+            destroy() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const accelerometer = new DualAxisAccelerometer();
+            
+            // Add some interactivity hints
+            setTimeout(() => {
+                document.getElementById('vectorStatus').textContent = 'Try dragging either accelerometer!';
+            }, 2000);
+            
+            // Make available globally for debugging
+            window.accelerometer = accelerometer;
+        });
+    </script>
+</body>
+</html>
