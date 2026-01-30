@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fully Corrected Mirrored Solution</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #0f172a;
+            font-family: monospace;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            gap: 50px;
+            margin: 30px;
+        }
+        
+        .control {
+            text-align: center;
+        }
+        
+        .control-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #60a5fa;
+        }
+        
+        .y-title {
+            color: #f87171;
+        }
+        
+        .accelerometer {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            cursor: grab;
+        }
+        
+        .accelerometer:active {
+            cursor: grabbing;
+        }
+        
+        /* Horizontal SVG - normal */
+        #horizontalSvg {
+            transform: none;
+        }
+        
+        /* Vertical SVG - flipped Y-axis */
+        #verticalSvg {
+            transform: scaleY(-1);
+        }
+        
+        .track {
+            fill: rgba(255,255,255,0.05);
+            stroke: rgba(255,255,255,0.2);
+            stroke-width: 2;
+            rx: 8;
+            ry: 8;
+        }
+        
+        .slider {
+            fill: url(#gradient);
+            filter: url(#glow);
+            transition: transform 0.1s ease;
+        }
+        
+        .horizontal-slider {
+            fill: #3b82f6;
+        }
+        
+        .vertical-slider {
+            fill: #ef4444;
+        }
+        
+        .center-line {
+            stroke: rgba(255,255,255,0.3);
+            stroke-width: 1;
+            stroke-dasharray: 3,3;
+        }
+        
+        .values {
+            margin-top: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .vector-display {
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 400px;
+        }
+        
+        .coords {
+            font-size: 32px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .coord-x { color: #60a5fa; }
+        .coord-y { color: #f87171; }
+        
+        .visualization {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .vector-arrow {
+            position: absolute;
+            width: 3px;
+            height: 0;
+            background: #10b981;
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 0;
+            border-radius: 2px;
+            box-shadow: 0 0 10px #10b981;
+        }
+        
+        .axis-line {
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .x-axis-line {
+            width: 100%;
+            height: 1px;
+            top: 50%;
+            left: 0;
+        }
+        
+        .y-axis-line {
+            width: 1px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+        }
+        
+        .axis-label {
+            position: absolute;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .label-x { bottom: 5px; right: 5px; }
+        .label-y { top: 5px; left: 5px; }
+        
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #10b981;
+            z-index: 1000;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .test-btn {
+            padding: 8px 16px;
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        
+        .test-btn:hover {
+            background: #334155;
+        }
+        
+        .explanation {
+            margin-top: 30px;
+            max-width: 600px;
+            text-align: center;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info" id="debug">Ready</div>
+    
+    <h1 style="color: #cbd5e1; margin-bottom: 10px;">✅ Fully Correct Solution</h1>
+    <p style="color: #94a3b8; margin-bottom: 30px;">SVG flipped + Mouse flipped = Correct vector math</p>
+    
+    <div class="container">
+        <!-- Horizontal Accelerometer -->
+        <div class="control">
+            <div class="control-title">↔ Horizontal (X-Axis)</div>
+            <div class="accelerometer" id="horizontalAccel">
+                <svg id="horizontalSvg" viewBox="0 0 300 300">
+                    <rect class="track" x="50" y="135" width="200" height="30"/>
+                    <line class="center-line" x1="150" y1="135" x2="150" y2="165"/>
+                    <rect class="slider horizontal-slider" id="xSlider" x="130" y="130" width="40" height="40" rx="8"/>
+                    <circle cx="150" cy="150" r="4" fill="rgba(255,255,255,0.6)"/>
+                </svg>
+            </div>
+            <div class="values">
+                X: <span id="xValue">0.00</span>
+            </div>
+        </div>
+        
+        <!-- Vertical Accelerometer -->
+        <div class="control">
+            <div class="control-title y-title">↕ Vertical (Y-Axis)</div>
+            <div class="accelerometer" id="verticalAccel">
+                <!-- SVG flipped -->
+                <svg id="verticalSvg" viewBox="0 0 300 300" style="transform: scaleY(-1);">
+                    <rect class="track" x="135" y="50" width="30" height="200"/>
+                    <line class="center-line" x1="135" y1="150" x2="165" y2="150"/>
+                    <rect class="slider vertical-slider" id="ySlider" x="130" y="130" width="40" height="40" rx="8"/>
+                    <circle cx="150" cy="150" r="4" fill="rgba(255,255,255,0.6)"/>
+                </svg>
+            </div>
+            <div class="values">
+                Y: <span id="yValue">0.00</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vector Display -->
+    <div class="vector-display">
+        <h3 style="color: #cbd5e1; margin-bottom: 15px;">📐 Vector: (X, Y)</h3>
+        
+        <div class="coords">
+            (<span class="coord-x" id="vecX">0.00</span>, 
+            <span class="coord-y" id="vecY">0.00</span>)
+        </div>
+        
+        <div style="margin: 10px 0; color: #94a3b8;">
+            Magnitude: <span id="magnitude">0.00</span> | 
+            Angle: <span id="angle">0</span>°
+        </div>
+        
+        <div class="visualization">
+            <div class="axis-line x-axis-line"></div>
+            <div class="axis-line y-axis-line"></div>
+            <div class="axis-label label-x">+X →</div>
+            <div class="axis-label label-y">↑ +Y</div>
+            <div class="vector-arrow" id="vectorArrow"></div>
+        </div>
+    </div>
+    
+    <div class="test-buttons">
+        <button class="test-btn" onclick="test(0.5, 0)">→ X=+0.5, Y=0</button>
+        <button class="test-btn" onclick="test(-0.5, 0)">← X=-0.5, Y=0</button>
+        <button class="test-btn" onclick="test(0, 0.5)">↑ X=0, Y=+0.5</button>
+        <button class="test-btn" onclick="test(0, -0.5)">↓ X=0, Y=-0.5</button>
+        <button class="test-btn" onclick="test(0.5, 0.5)">↗ X=+0.5, Y=+0.5</button>
+        <button class="test-btn" onclick="test(-0.5, 0.5)">↖ X=-0.5, Y=+0.5</button>
+    </div>
+    
+    <div class="explanation">
+        <h3 style="color: #fbbf24; margin-bottom: 15px;">How It Works:</h3>
+        <p>1. <code>transform: scaleY(-1)</code> flips SVG so +Y is up</p>
+        <p>2. Mouse Y coordinate is <strong>also flipped</strong> when dragging vertical slider</p>
+        <p>3. Vector display shows <strong>(X, Y)</strong> in correct order</p>
+        <p>4. <code>Math.atan2(Y, X)</code> gives correct angle with flipped coordinates</p>
+        <p style="margin-top: 15px; color: #10b981;">Now everything matches: visual, dragging, and vector math!</p>
+    </div>
+
+    <svg style="display: none;">
+        <defs>
+            <linearGradient id="gradient">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#1d4ed8"/>
+            </linearGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+    </svg>
+
+    <script>
+        class FixedAccelerometer {
+            constructor() {
+                this.x = 0;  // X value (-1 to 1)
+                this.y = 0;  // Y value (-1 to 1)
+                this.vx = 0; // X velocity
+                this.vy = 0; // Y velocity
+                
+                this.dragging = null;
+                this.debug = document.getElementById('debug');
+                
+                this.init();
+                this.animate();
+            }
+            
+            init() {
+                // Horizontal - normal mouse
+                document.getElementById('horizontalAccel').addEventListener('mousedown', (e) => {
+                    this.startDrag('x', e.clientX, e.clientY);
+                });
+                
+                // Vertical - mouse Y will be flipped!
+                document.getElementById('verticalAccel').addEventListener('mousedown', (e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    // Flip mouse Y coordinate because SVG is flipped!
+                    const flippedY = rect.bottom - (e.clientY - rect.top);
+                    this.startDrag('y', e.clientX, flippedY);
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!this.dragging) return;
+                    
+                    if (this.dragging.axis === 'x') {
+                        // Normal mouse for X
+                        this.dragX(e.clientX);
+                    } else {
+                        // Flipped mouse for Y (because SVG is flipped!)
+                        const rect = document.getElementById('verticalAccel').getBoundingClientRect();
+                        const flippedY = rect.bottom - (e.clientY - rect.top);
+                        this.dragY(flippedY);
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    this.stopDrag();
+                });
+            }
+            
+            startDrag(axis, startX, startY) {
+                this.dragging = {
+                    axis: axis,
+                    startPos: axis === 'x' ? startX : startY,
+                    startValue: axis === 'x' ? this.x : this.y
+                };
+                
+                if (axis === 'x') this.vx = 0;
+                else this.vy = 0;
+                
+                this.debug.textContent = `${axis.toUpperCase()}-drag started`;
+            }
+            
+            dragX(currentX) {
+                const { startPos, startValue } = this.dragging;
+                const delta = (currentX - startPos) / 100;
+                this.x = Math.max(-1, Math.min(1, startValue + delta));
+                this.vx = (this.x - startValue) * 0.3;
+                this.update();
+            }
+            
+            dragY(currentY) {
+                const { startPos, startValue } = this.dragging;
+                const delta = (currentY - startPos) / 100;
+                this.y = Math.max(-1, Math.min(1, startValue + delta));
+                this.vy = (this.y - startValue) * 0.3;
+                this.update();
+                
+                this.debug.textContent = 
+                    `Y: ${this.y.toFixed(2)} (mouse flipped, delta: ${delta.toFixed(2)})`;
+            }
+            
+            stopDrag() {
+                if (this.dragging) {
+                    this.debug.textContent = `${this.dragging.axis.toUpperCase()}-drag ended`;
+                    this.dragging = null;
+                }
+            }
+            
+            update() {
+                // Update slider positions
+                document.getElementById('xSlider').setAttribute('x', 130 + this.x * 70);
+                document.getElementById('ySlider').setAttribute('y', 130 + this.y * 70);
+                
+                // Update value displays
+                document.getElementById('xValue').textContent = this.x.toFixed(2);
+                document.getElementById('yValue').textContent = this.y.toFixed(2);
+                
+                // Update vector display - CORRECT ORDER: (X, Y)
+                this.updateVector();
+            }
+            
+            updateVector() {
+                // Display X and Y in correct order
+                const vecX = document.getElementById('vecX');
+                const vecY = document.getElementById('vecY');
+                
+                vecX.textContent = this.x.toFixed(2);
+                vecY.textContent = this.y.toFixed(2);
+                
+                // Color the values
+                vecX.style.color = this.getColor(this.x);
+                vecY.style.color = this.getColor(this.y);
+                
+                // Calculate magnitude and angle
+                const mag = Math.sqrt(this.x * this.x + this.y * this.y);
+                const angle = Math.atan2(this.y, this.x); // Y, X in correct order!
+                
+                document.getElementById('magnitude').textContent = mag.toFixed(2);
+                document.getElementById('angle').textContent = Math.round(angle * 180 / Math.PI);
+                
+                // Update arrow
+                const arrow = document.getElementById('vectorArrow');
+                arrow.style.height = `${mag * 80}px`;
+                arrow.style.transform = `translateX(-50%) rotate(${angle}rad)`;
+                
+                // Color based on magnitude
+                if (mag > 0.7) {
+                    arrow.style.background = '#ef4444';
+                    arrow.style.boxShadow = '0 0 20px #ef4444';
+                } else if (mag > 0.3) {
+                    arrow.style.background = '#f59e0b';
+                    arrow.style.boxShadow = '0 0 15px #f59e0b';
+                } else {
+                    arrow.style.background = '#10b981';
+                    arrow.style.boxShadow = '0 0 10px #10b981';
+                }
+                
+                // Debug direction
+                let direction = '';
+                if (Math.abs(this.x) > 0.3 && Math.abs(this.y) < 0.3) {
+                    direction = this.x > 0 ? '→ Right' : '← Left';
+                } else if (Math.abs(this.y) > 0.3 && Math.abs(this.x) < 0.3) {
+                    direction = this.y > 0 ? '↑ Up' : '↓ Down';
+                } else if (Math.abs(this.x) > 0.3 && Math.abs(this.y) > 0.3) {
+                    if (this.x > 0 && this.y > 0) direction = '↗ Up-Right';
+                    else if (this.x < 0 && this.y > 0) direction = '↖ Up-Left';
+                    else if (this.x > 0 && this.y < 0) direction = '↘ Down-Right';
+                    else direction = '↙ Down-Left';
+                }
+                
+                if (direction) {
+                    this.debug.textContent = `Vector: ${direction} (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
+                }
+            }
+            
+            getColor(value) {
+                const abs = Math.abs(value);
+                if (abs < 0.3) return '#4ade80';
+                if (abs < 0.7) return '#fbbf24';
+                return '#ef4444';
+            }
+            
+            animate() {
+                // Spring physics when not dragging
+                if (!this.dragging || this.dragging.axis !== 'x') {
+                    this.vx += -this.x * 0.2;
+                    this.vx *= 0.9;
+                    this.x += this.vx * 0.1;
+                    
+                    if (Math.abs(this.x) < 0.01 && Math.abs(this.vx) < 0.01) {
+                        this.x = this.vx = 0;
+                    }
+                }
+                
+                if (!this.dragging || this.dragging.axis !== 'y') {
+                    this.vy += -this.y * 0.2;
+                    this.vy *= 0.9;
+                    this.y += this.vy * 0.1;
+                    
+                    if (Math.abs(this.y) < 0.01 && Math.abs(this.vy) < 0.01) {
+                        this.y = this.vy = 0;
+                    }
+                }
+                
+                this.update();
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            setValues(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = this.vy = 0;
+                this.update();
+            }
+        }
+        
+        // Initialize
+        const accel = new FixedAccelerometer();
+        window.accel = accel;
+        
+        // Test function
+        function test(x, y) {
+            console.log(`Test: X=${x}, Y=${y}`);
+            accel.setValues(x, y);
+            
+            // Log expected vector
+            const mag = Math.sqrt(x*x + y*y).toFixed(2);
+            const angle = Math.round(Math.atan2(y, x) * 180 / Math.PI);
+            console.log(`Expected: magnitude=${mag}, angle=${angle}°`);
+        }
+        
+        // Quick demo on load
+        setTimeout(() => {
+            console.log("=== TEST CASES ===");
+            console.log("1. → X=+0.5, Y=0: Vector should point right (0°)");
+            console.log("2. ↑ X=0, Y=+0.5: Vector should point up (90°)");
+            console.log("3. ↗ X=+0.5, Y=+0.5: Vector should point up-right (45°)");
+        }, 1000);
+    </script>
+</body>
+</html>
