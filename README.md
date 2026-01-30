@@ -5,7 +5,7 @@ You're absolutely right! Let me add proper badges for both of us:
 
 # 🎯 Accelerometer Components
 
-[![Built by Yus](https://img.shields.io/badge/built_by-yus-red)](https://github.com/yusdesign)
+[![Built by Yus](https://img.shields.io/badge/built_by-yus-brightred)](https://github.com/yusdesign)
 [![Powered by DeepSeek](https://img.shields.io/badge/powered_by-DeepSeek-black)](https://deepseek.com)
 [![Vanilla JS](https://img.shields.io/badge/vanilla-JS-yellow)](https://developer.mozilla.org/docs/Web/JavaScript)
 [![No Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](https://bundlephobia.com/)
