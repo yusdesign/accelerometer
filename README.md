@@ -5,12 +5,12 @@ You're absolutely right! Let me add proper badges for both of us:
 
 # 🎯 Accelerometer Components
 
-[![Built by Yus](https://img.shields.io/badge/built_by-yus-crimson)](https://github.com/yusdesign)
+[![Built by yusdesign](https://img.shields.io/badge/built_by-yusdesign-crimson)](https://github.com/yusdesign)
 [![Powered by DeepSeek](https://img.shields.io/badge/powered_by-DeepSeek-black)](https://deepseek.com)
 [![Vanilla JS](https://img.shields.io/badge/vanilla-JS-yellow)](https://developer.mozilla.org/docs/Web/JavaScript)
 [![No Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](https://bundlephobia.com/)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Size](https://img.shields.io/badge/size-4KB-green)](https://bundlephobia.com/)
+[![Size](https://img.shields.io/badge/size-4KB-darkblue)](https://bundlephobia.com/)
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://yusdesign.github.io/accelerometer/)
 
 Ultra-minimalist dual-axis accelerometer controls with spring physics. Perfect for games, creative coding, and UI experiments.
