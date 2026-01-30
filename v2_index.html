@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Accelerometer - Correct Physics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #0a0a1a;
+            font-family: monospace;
+            color: white;
+            padding: 20px;
+        }
+        
+        .debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #0f0;
+            z-index: 1000;
+        }
+        
+        .container {
+            display: flex;
+            gap: 40px;
+            margin: 30px;
+        }
+        
+        .control {
+            width: 300px;
+            height: 300px;
+            position: relative;
+        }
+        
+        .track {
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        
+        .horizontal-track {
+            width: 200px;
+            height: 40px;
+            left: 50px;
+            top: 130px;
+        }
+        
+        .vertical-track {
+            width: 40px;
+            height: 200px;
+            left: 130px;
+            top: 50px;
+        }
+        
+        .slider {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 10px;
+            cursor: grab;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .horizontal-slider {
+            left: 150px;
+            top: 150px;
+        }
+        
+        .vertical-slider {
+            left: 150px;
+            top: 150px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .slider:active {
+            cursor: grabbing;
+        }
+        
+        .value-display {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .axis-label {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #3498db;
+        }
+        
+        .vertical-label {
+            color: #e74c3c;
+        }
+        
+        .vector-display {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .direction-arrow {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .arrow {
+            position: absolute;
+            width: 2px;
+            height: 40px;
+            background: #0f0;
+            top: 50%;
+            left: 50%;
+            transform-origin: 50% 0;
+        }
+        
+        .center-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            left: 150px;
+            top: 150px;
+            transform: translate(-50%, -50%);
+        }
+        
+        .test-button {
+            margin: 20px;
+            padding: 10px 20px;
+            background: #2c3e50;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .test-button:hover {
+            background: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug" id="debug">Debug info will appear here</div>
+    
+    <h1>🔧 Fixed Accelerometer Physics</h1>
+    <p style="color: #aaa; margin-bottom: 20px;">Testing correct X and Y movement</p>
+    
+    <div class="container">
+        <div>
+            <div class="axis-label">↔ Horizontal (X)</div>
+            <div class="control" id="horizontalControl">
+                <div class="track horizontal-track"></div>
+                <div class="slider horizontal-slider" id="horizontalSlider"></div>
+                <div class="center-dot"></div>
+            </div>
+            <div class="value-display" id="horizontalValue">X: 0.00</div>
+        </div>
+        
+        <div>
+            <div class="axis-label vertical-label">↕ Vertical (Y)</div>
+            <div class="control" id="verticalControl">
+                <div class="track vertical-track"></div>
+                <div class="slider vertical-slider" id="verticalSlider"></div>
+                <div class="center-dot"></div>
+            </div>
+            <div class="value-display" id="verticalValue">Y: 0.00</div>
+        </div>
+    </div>
+    
+    <button class="test-button" onclick="runTest()">🧪 Run Movement Test</button>
+    
+    <div class="vector-display">
+        <h3>Vector: (<span id="vecX">0.00</span>, <span id="vecY">0.00</span>)</h3>
+        <div class="direction-arrow">
+            <div class="arrow" id="arrow"></div>
+        </div>
+        <div>Angle: <span id="angle">0</span>° | Magnitude: <span id="magnitude">0.00</span></div>
+    </div>
+    
+    <script>
+        class FixedAccelerometer {
+            constructor() {
+                // Slider elements
+                this.hSlider = document.getElementById('horizontalSlider');
+                this.vSlider = document.getElementById('verticalSlider');
+                
+                // Display elements
+                this.hValue = document.getElementById('horizontalValue');
+                this.vValue = document.getElementById('verticalValue');
+                this.debug = document.getElementById('debug');
+                this.arrow = document.getElementById('arrow');
+                
+                // State
+                this.values = { x: 0, y: 0 };
+                this.velocities = { x: 0, y: 0 };
+                this.dragging = { x: false, y: false };
+                this.start = { x: { pos: 0, value: 0 }, y: { pos: 0, value: 0 } };
+                
+                // Physics
+                this.spring = 0.2;
+                this.damping = 0.85;
+                
+                this.init();
+                this.animate();
+            }
+            
+            init() {
+                // Horizontal events
+                this.hSlider.addEventListener('mousedown', (e) => {
+                    this.startDrag('x', e.clientX);
+                });
+                
+                // Vertical events  
+                this.vSlider.addEventListener('mousedown', (e) => {
+                    this.startDrag('y', e.clientY);
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    this.drag(e.clientX, e.clientY);
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    this.endDrag();
+                });
+            }
+            
+            startDrag(axis, startPos) {
+                this.dragging[axis] = true;
+                this.start[axis].pos = startPos;
+                this.start[axis].value = this.values[axis];
+                this.velocities[axis] = 0;
+                
+                this.debug.textContent = `${axis.toUpperCase()} drag started at ${startPos}`;
+            }
+            
+            drag(clientX, clientY) {
+                // Horizontal drag
+                if (this.dragging.x) {
+                    const deltaX = clientX - this.start.x.pos;
+                    this.values.x = this.start.x.value + deltaX / 150;
+                    this.values.x = Math.max(-1, Math.min(1, this.values.x));
+                    this.velocities.x = (this.values.x - this.start.x.value) * 0.3;
+                }
+                
+                // Vertical drag - CRITICAL FIX HERE
+                if (this.dragging.y) {
+                    const deltaY = clientY - this.start.y.pos;
+                    
+                    // For Y axis: DOWN = NEGATIVE, UP = POSITIVE
+                    // Since clientY increases when moving DOWN,
+                    // we need to INVERT the delta
+                    this.values.y = this.start.y.value - deltaY / 150; // MINUS sign!
+                    this.values.y = Math.max(-1, Math.min(1, this.values.y));
+                    this.velocities.y = (this.values.y - this.start.y.value) * 0.3;
+                    
+                    this.debug.textContent = 
+                        `Y drag: deltaY=${deltaY.toFixed(0)}, ` +
+                        `value=${this.values.y.toFixed(2)}, ` +
+                        `inverted=${(-deltaY/150).toFixed(2)}`;
+                }
+                
+                this.update();
+            }
+            
+            endDrag() {
+                this.dragging.x = false;
+                this.dragging.y = false;
+                this.debug.textContent = 'Drag ended - springing back';
+            }
+            
+            update() {
+                // Update slider positions
+                // X: +value = right, -value = left
+                this.hSlider.style.transform = `translate(calc(-50% + ${this.values.x * 100}px), -50%)`;
+                
+                // Y: +value = UP, -value = DOWN
+                // Since CSS Y increases DOWN, we need to NEGATE the value
+                this.vSlider.style.transform = `translate(-50%, calc(-50% + ${-this.values.y * 100}px))`;
+                
+                // Update displays
+                this.hValue.textContent = `X: ${this.values.x.toFixed(2)}`;
+                this.vValue.textContent = `Y: ${this.values.y.toFixed(2)}`;
+                
+                // Color code
+                this.hValue.style.color = this.getColor(this.values.x);
+                this.vValue.style.color = this.getColor(this.values.y);
+                
+                // Update vector
+                this.updateVector();
+            }
+            
+            getColor(value) {
+                const abs = Math.abs(value);
+                if (abs < 0.3) return '#0f0';
+                if (abs < 0.7) return '#ff0';
+                return '#f00';
+            }
+            
+            updateVector() {
+                const x = this.values.x;
+                const y = this.values.y;
+                
+                document.getElementById('vecX').textContent = x.toFixed(2);
+                document.getElementById('vecY').textContent = y.toFixed(2);
+                
+                const magnitude = Math.sqrt(x*x + y*y);
+                const angle = Math.atan2(y, x);
+                
+                document.getElementById('magnitude').textContent = magnitude.toFixed(2);
+                document.getElementById('angle').textContent = Math.round(angle * 180 / Math.PI);
+                
+                // Update arrow
+                this.arrow.style.transform = `translate(-50%, -100%) rotate(${angle}rad)`;
+                this.arrow.style.height = `${20 + magnitude * 30}px`;
+                this.arrow.style.background = magnitude > 0.7 ? '#f00' : magnitude > 0.3 ? '#ff0' : '#0f0';
+            }
+            
+            animate() {
+                if (!this.dragging.x) {
+                    const force = -this.values.x * this.spring;
+                    this.velocities.x += force;
+                    this.velocities.x *= this.damping;
+                    this.values.x += this.velocities.x * 0.1;
+                    
+                    if (Math.abs(this.values.x) < 0.01 && Math.abs(this.velocities.x) < 0.01) {
+                        this.values.x = this.velocities.x = 0;
+                    }
+                }
+                
+                if (!this.dragging.y) {
+                    const force = -this.values.y * this.spring;
+                    this.velocities.y += force;
+                    this.velocities.y *= this.damping;
+                    this.values.y += this.velocities.y * 0.1;
+                    
+                    if (Math.abs(this.values.y) < 0.01 && Math.abs(this.velocities.y) < 0.01) {
+                        this.values.y = this.velocities.y = 0;
+                    }
+                }
+                
+                this.update();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize
+        const accel = new FixedAccelerometer();
+        window.accel = accel; // For debugging
+        
+        // Test function
+        function runTest() {
+            console.log("🧪 Running movement test...");
+            
+            // Test 1: Horizontal movement
+            console.log("Testing X-axis:");
+            console.log("Right drag should give positive X");
+            
+            // Test 2: Vertical movement  
+            console.log("Testing Y-axis:");
+            console.log("Up drag should give positive Y");
+            console.log("Down drag should give negative Y");
+            
+            // Visual test
+            accel.values.x = 0.5;
+            accel.values.y = 0.5;
+            accel.update();
+            
+            setTimeout(() => {
+                accel.values.x = -0.5;
+                accel.values.y = -0.5;
+                accel.update();
+            }, 1000);
+            
+            setTimeout(() => {
+                accel.values.x = 0;
+                accel.values.y = 0;
+                accel.update();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
