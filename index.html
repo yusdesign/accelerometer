@@ -470,7 +470,8 @@
         </div>
 
         <!-- Code Panel -->
-        <div class="code-panel">
+        <!-- Change this line in your HTML -->
+        <div class="code-panel" id="code-panel-container">
             <div class="panel-title">💻 Component Code</div>
             
             <div class="code-tabs">
@@ -819,17 +820,15 @@ class ResultDisplay {
         </div>
     </div>
 
-    <!-- Usage Examples -->
-    <div class="usage-examples">
-        <div class="panel-title" style="margin-bottom: 20px;">🚀 Usage Examples</div>
-        
-        <div class="example">
-            <div class="example-title">Basic Setup</div>
-            <div class="example-code">
+            <!-- Usage Examples -->
+        <div class="usage-examples">
+            <div class="panel-title">🚀 Usage Examples</div>
+
+            <div class="example">
+                <div class="example-title">Basic Setup</div>
                 <div class="code-block">
                     <button class="copy-btn" onclick="copyCode('example-basic')">Copy</button>
-                    <pre id="example-basic"><code>
-// 1. Create components
+                    <pre id="example-basic"><code>// 1. Create components
 const xAccel = new HorizontalAccelerometer('hKnob', 'hTrack', 'xValue');
 const yAccel = new VerticalAccelerometer('vKnob', 'vTrack', 'yValue');
 const result = new ResultDisplay();
@@ -847,39 +846,38 @@ animate();
 console.log(`X: ${xAccel.value}, Y: ${yAccel.value}`);</code></pre>
                 </div>
             </div>
-        </div>
-        
-        <div class="example">
-            <div class="example-title">Game Controller Example</div>
-            <div class="example-code">
-// Game controller using accelerometer values
+
+            <div class="example">
+                <div class="example-title">Game Controller Example</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode('example-game')">Copy</button>
+                    <pre id="example-game"><code>// Game controller using accelerometer values
 class GameController {
     constructor() {
         this.xAccel = new HorizontalAccelerometer('xCtrl', 'xTrack', 'xDisplay');
         this.yAccel = new VerticalAccelerometer('yCtrl', 'yTrack', 'yDisplay');
-        
         this.player = { x: 0, y: 0 };
         this.animate();
     }
-    
+
     animate() {
         // Get acceleration values (-1 to 1)
         const accelX = this.xAccel.updatePhysics();
         const accelY = this.yAccel.updatePhysics();
-        
+
         // Apply to player position (with some scaling)
         this.player.x += accelX * 5;
         this.player.y += accelY * 5;
-        
+
         // Keep player in bounds
         this.player.x = Math.max(-100, Math.min(100, this.player.x));
         this.player.y = Math.max(-100, Math.min(100, this.player.y));
-        
+
         // Update game
         this.updateGame();
         requestAnimationFrame(() => this.animate());
     }
-    
+
     updateGame() {
         // Your game logic here
         document.getElementById('player').style.transform = 
@@ -888,14 +886,15 @@ class GameController {
 }
 
 // Start the game
-const game = new GameController();
+const game = new GameController();</code></pre>
+                </div>
             </div>
-        </div>
-        
-        <div class="example">
-            <div class="example-title">Programmatic Control</div>
-            <div class="example-code">
-// You can also set values programmatically
+
+            <div class="example">
+                <div class="example-title">Programmatic Control</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode('example-programmatic')">Copy</button>
+                    <pre id="example-programmatic"><code>// You can also set values programmatically
 const accel = new HorizontalAccelerometer('knob', 'track', 'value');
 
 // Set specific value (-1 to 1)
@@ -917,10 +916,10 @@ const observer = {
         console.log(`Acceleration changed: X=${x.toFixed(2)}, Y=${y.toFixed(2)}`);
         // Update your application state here
     }
-};
+};</code></pre>
+                </div>
             </div>
         </div>
-    </div>
     <div class="credits">
         <a href="https://github.com/yusdesign"><img src="https://img.shields.io/badge/@yus_at-yusdesign-crimson" alt="@yus at yusdesign"></a>
     </div>
