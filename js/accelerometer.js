@@ -304,14 +304,25 @@
         }
         
         function copyCode(elementId) {
-            // Get the code block element
-            const codeBlock = document.getElementById(elementId);
-            let codeText;
+            // Find the closest code block - handles both cases:
+            // 1. Component code: button inside .code-block with ID on the block
+            // 2. Example code: button inside .code-block, ID is on the <pre>
             
-            // Handle two different HTML structures:
-            // 1. Component code: <div id="horizontal-code" class="code-block"><button>...<pre>text</pre>
-            // 2. Example code: <div id="example-basic" class="code-block"><button>...<pre><code>text</code></pre>
+            const button = event.target;  // The clicked button
+            const codeBlock = button.closest('.code-block');
+            
+            if (!codeBlock) {
+                console.error('Could not find code block');
+                return;
+            }
+            
+            let codeText;
             const preElement = codeBlock.querySelector('pre');
+            
+            if (!preElement) {
+                console.error('Could not find pre element in code block');
+                return;
+            }
             
             if (preElement.firstElementChild && preElement.firstElementChild.tagName === 'CODE') {
                 // For example code blocks: get text from <code> inside <pre>
@@ -322,14 +333,13 @@
             }
             
             navigator.clipboard.writeText(codeText).then(() => {
-                const btn = codeBlock.querySelector('.copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = 'rgba(100, 255, 218, 0.3)';
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = 'rgba(100, 255, 218, 0.3)';
                 
                 setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = 'rgba(100, 255, 218, 0.1)';
+                    button.textContent = originalText;
+                    button.style.background = 'rgba(100, 255, 218, 0.1)';
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy code:', err);
