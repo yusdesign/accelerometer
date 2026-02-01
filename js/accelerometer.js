@@ -286,8 +286,8 @@
         // ============================================================================
         
         function showCode(component) {
-            // Hide all code blocks
-            document.querySelectorAll('.code-block').forEach(block => {
+            // Hide all code blocks in the main component panel only
+            document.querySelectorAll('#code-panel-container .code-block').forEach(block => {
                 block.style.display = 'none';
             });
             
@@ -304,10 +304,24 @@
         }
         
         function copyCode(elementId) {
+            // Get the code block element
             const codeBlock = document.getElementById(elementId);
-            const code = codeBlock.querySelector('pre').textContent;
+            let codeText;
             
-            navigator.clipboard.writeText(code).then(() => {
+            // Handle two different HTML structures:
+            // 1. Component code: <div id="horizontal-code" class="code-block"><button>...<pre>text</pre>
+            // 2. Example code: <div id="example-basic" class="code-block"><button>...<pre><code>text</code></pre>
+            const preElement = codeBlock.querySelector('pre');
+            
+            if (preElement.firstElementChild && preElement.firstElementChild.tagName === 'CODE') {
+                // For example code blocks: get text from <code> inside <pre>
+                codeText = preElement.firstElementChild.textContent || preElement.firstElementChild.innerText;
+            } else {
+                // For component code blocks: get text directly from <pre>
+                codeText = preElement.textContent || preElement.innerText;
+            }
+            
+            navigator.clipboard.writeText(codeText).then(() => {
                 const btn = codeBlock.querySelector('.copy-btn');
                 const originalText = btn.textContent;
                 btn.textContent = 'Copied!';
@@ -317,5 +331,7 @@
                     btn.textContent = originalText;
                     btn.style.background = 'rgba(100, 255, 218, 0.1)';
                 }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy code:', err);
             });
         }
