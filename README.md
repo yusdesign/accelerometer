@@ -91,4 +91,4 @@ accel.setValue(0);      // Reset to center
 
 ### 📄 License
 
-MIT © 2026 - Free to use in personal and commercial projects  
+MIT © 2026 - *free to use in personal and commercial projects*  
