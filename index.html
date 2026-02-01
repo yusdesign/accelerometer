@@ -482,7 +482,7 @@
             </div>
 
             <div id="horizontal-code" class="code-block">
-                <button class="copy-btn" onclick="copyCode('horizontal-code')">Copy</button>
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
                 <pre>// HORIZONTAL ACCELEROMETER COMPONENT
 // Usage: const xAccel = new HorizontalAccelerometer('knobId', 'trackId', 'valueId');
 
@@ -588,7 +588,7 @@ class HorizontalAccelerometer {
             </div>
 
             <div id="vertical-code" class="code-block" style="display: none;">
-                <button class="copy-btn" onclick="copyCode('vertical-code')">Copy</button>
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
                 <pre>// VERTICAL ACCELEROMETER COMPONENT
 // Usage: const yAccel = new VerticalAccelerometer('knobId', 'trackId', 'valueId');
 
@@ -694,7 +694,7 @@ class VerticalAccelerometer {
             </div>
 
             <div id="transformer-code" class="code-block" style="display: none;">
-                <button class="copy-btn" onclick="copyCode('transformer-code')">Copy</button>
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
                 <pre>// COORDINATE TRANSFORMER (UTILITY)
 // Usage: const angle = CoordinateTransformer.toCompassAngle(x, y);
 
@@ -731,7 +731,7 @@ class CoordinateTransformer {
             </div>
 
             <div id="result-code" class="code-block" style="display: none;">
-                <button class="copy-btn" onclick="copyCode('result-code')">Copy</button>
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
                 <pre>// RESULT DISPLAY COMPONENT
 // Usage: const result = new ResultDisplay();
 
@@ -827,7 +827,7 @@ class ResultDisplay {
             <div class="example">
                 <div class="example-title">Basic Setup</div>
                 <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode('example-basic')">Copy</button>
+                    <button class="copy-btn" onclick="copyCode()">Copy</button>
                     <pre id="example-basic"><code>// 1. Create components
 const xAccel = new HorizontalAccelerometer('hKnob', 'hTrack', 'xValue');
 const yAccel = new VerticalAccelerometer('vKnob', 'vTrack', 'yValue');
@@ -850,7 +850,7 @@ console.log(`X: ${xAccel.value}, Y: ${yAccel.value}`);</code></pre>
             <div class="example">
                 <div class="example-title">Game Controller Example</div>
                 <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode('example-game')">Copy</button>
+                    <button class="copy-btn" onclick="copyCode()">Copy</button>
                     <pre id="example-game"><code>// Game controller using accelerometer values
 class GameController {
     constructor() {
@@ -893,7 +893,7 @@ const game = new GameController();</code></pre>
             <div class="example">
                 <div class="example-title">Programmatic Control</div>
                 <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode('example-programmatic')">Copy</button>
+                    <button class="copy-btn" onclick="copyCode()">Copy</button>
                     <pre id="example-programmatic"><code>// You can also set values programmatically
 const accel = new HorizontalAccelerometer('knob', 'track', 'value');
 
