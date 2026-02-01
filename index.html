@@ -826,6 +826,9 @@ class ResultDisplay {
         <div class="example">
             <div class="example-title">Basic Setup</div>
             <div class="example-code">
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode('example-basic')">Copy</button>
+                    <pre id="example-basic"><code>
 // 1. Create components
 const xAccel = new HorizontalAccelerometer('hKnob', 'hTrack', 'xValue');
 const yAccel = new VerticalAccelerometer('vKnob', 'vTrack', 'yValue');
@@ -841,7 +844,8 @@ function animate() {
 animate();
 
 // 3. Get current values anytime
-console.log(`X: ${xAccel.value}, Y: ${yAccel.value}`);
+console.log(`X: ${xAccel.value}, Y: ${yAccel.value}`);</code></pre>
+                </div>
             </div>
         </div>
         
