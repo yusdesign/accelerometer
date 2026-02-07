@@ -10,7 +10,10 @@
 [![Size](https://img.shields.io/badge/size-4KB-darkblue)](https://bundlephobia.com/)
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://yusdesign.github.io/accelerometer/)
 
-Ultra-minimalist dual-axis accelerometer controls with spring physics. Perfect for games, creative coding, and UI experiments.
+Ultra-minimalist dual-axis accelerometer controls with spring physics.  
+Perfect for games, creative coding, and UI experiments.
+
+[![AccelerometerUI](https://yusdesign.github.io/accelerometer/style/AccelerometerUI.png)](https://yusdesign.github.io/accelerometer/style/AccelerometerUI.png)
 
 ### 🚀 Quick Start
 
