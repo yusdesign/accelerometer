@@ -98,5 +98,5 @@ MIT © 2026 - *free to use in personal and commercial projects*
 
 #### *Earn for mutual coffee*
 
-[T-Bank](https://tbank.ru)
+[T-Bank](https://tbank.ru)  
 [OTP](https://r.otpbank.ru/cc/jZZTSZ)
